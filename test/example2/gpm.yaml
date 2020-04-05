@@ -1,0 +1,7 @@
+packages:
+  - path: dart_package
+
+scripts:
+  example:
+    steps:
+      - run: ['touch', '$ARGS']

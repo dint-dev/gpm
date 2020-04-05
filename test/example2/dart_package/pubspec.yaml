@@ -1,0 +1,10 @@
+name: dart_package
+
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+
+dev_dependencies:
+  build_runner: ^1.8.1
+  build_web_compilers: ^2.7.0
+  test: ^1.10.0
+  webdev: ^2.5.6
