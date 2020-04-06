@@ -100,6 +100,8 @@ Future<void> runCommand(
   if (exitCode != 0) {
     throw CommandFailedException(
       exitCode,
+      executable: executable,
+      args: args,
       stdout: utf8.decode(stdoutBuffer),
       stderr: utf8.decode(stderrBuffer),
     );
@@ -121,15 +123,31 @@ String _toRelativePath(String path) {
 
 class CommandFailedException implements Exception {
   final int exitCode;
+  final String executable;
+  final List<String> args;
   final String stdout;
   final String stderr;
 
   CommandFailedException(
     this.exitCode, {
+    this.executable,
+    this.args,
     this.stdout = '',
     this.stderr = '',
   });
 
   @override
-  String toString() => 'CommandFailedException($exitCode, ...)';
+  String toString() {
+    final sb = StringBuffer();
+    sb.writeln('CommandFailedException was thrown.');
+    if (executable != null) {
+      sb.writeln('Command: $executable ${args.join(' ')}');
+    }
+    sb.writeln('Exit code: $exitCode');
+    sb.writeln('OUT:');
+    sb.writeln('  ${stdout.replaceAll('\n', '\n  ')}');
+    sb.writeln('ERR:');
+    sb.writeln('  ${stderr.replaceAll('\n', '\n  ')}');
+    return sb.toString();
+  }
 }

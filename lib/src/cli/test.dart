@@ -86,6 +86,11 @@ class _TestCommand extends Command {
     pubArgs.addAll(argResults.rest);
 
     for (var package in GpmConfig.get().packages) {
+      final step = package.test;
+      if (step != null) {
+        await step.execute(workingDirectory: package.directory.path);
+        continue;
+      }
       if (package.isTestedWithFlutter) {
         if (platform == null) {
           await runCommand(

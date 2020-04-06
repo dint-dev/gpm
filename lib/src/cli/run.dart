@@ -37,7 +37,7 @@ class _RunCommand extends Command {
     final executable = rest.first;
     final step = config.scripts[executable];
     if (step != null) {
-      await step.execute(rest.skip(1).toList());
+      await step.execute(args: rest.skip(1).toList());
       return;
     }
     if (File('pubspec.yaml').existsSync()) {

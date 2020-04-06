@@ -1,5 +1,5 @@
 name: gpm
-version: 0.2.0
+version: 0.2.1
 description:
   GPM is a command-line tool for working with Dart/Flutter repositories. Eases local testing,
   building, and CI setup.

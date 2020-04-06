@@ -1,3 +1,8 @@
+## 0.2.1
+
+* Adds support for overriding test/build steps.
+* Fixes a CI configuration generation bug.
+
 ## 0.2.0
 
 * Lots of improvements.

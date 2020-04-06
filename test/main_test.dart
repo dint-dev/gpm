@@ -24,18 +24,6 @@ import 'package:yaml/yaml.dart';
 import 'dart:async';
 
 void main() {
-  setUpAll(() async {
-    if (Platform.environment['SILENT'] == 'true') {
-      gpm.commandStdout = null;
-      gpm.commandStderr = null;
-    }
-    // Cache dependencies so we can use "run pub get --offline" later
-    await gpm.runCommand(
-      'pub',
-      ['get'],
-      workingDirectory: 'test_projects/example2/dart_package',
-    );
-  });
   group('GpmStep:', () {
     group('evaluateTemplate:', () {
       test('lots of whitespace', () {
@@ -148,6 +136,30 @@ scripts:
     });
   });
   group('main(...):', () {
+    setUpAll(() async {
+      if (Platform.environment['SILENT'] == 'true') {
+        gpm.commandStdout = null;
+        gpm.commandStderr = null;
+      }
+
+      // Ensure that we have dependencies cached so we can use 'pub get --offline'
+      // in actual tests.
+      try {
+        await gpm.runCommand(
+          'pub',
+          ['get', '--offline'],
+          workingDirectory: 'test_projects/example2_gpm_config/dart_package',
+        );
+      } on gpm.CommandFailedException {
+        // Cache dependencies so we can use "run pub get --offline" later
+        await gpm.runCommand(
+          'pub',
+          ['get'],
+          workingDirectory: 'test_projects/example2_gpm_config/dart_package',
+        );
+      }
+    });
+
     setUp(() {
       _deleteTemporyFiles();
     });
@@ -173,7 +185,8 @@ scripts:
       );
       expect(
         lines[1],
-        'test_projects/example1/dart_package'.padRight(60) + '(Dart SDK)',
+        'test_projects/example1_two_packages/dart_package'.padRight(60) +
+            '(Dart SDK)',
       );
     });
 
@@ -182,7 +195,7 @@ scripts:
         if (!(await gpm.isFlutterCommandAvailable)) {
           return;
         }
-        Directory.current = 'test_projects/example1';
+        Directory.current = 'test_projects/example1_two_packages';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -191,7 +204,7 @@ scripts:
       });
 
       test('example #2', () async {
-        Directory.current = 'test_projects/example2';
+        Directory.current = 'test_projects/example2_gpm_config';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -203,7 +216,7 @@ scripts:
         if (!(await gpm.isFlutterCommandAvailable)) {
           return;
         }
-        Directory.current = 'test_projects/example3';
+        Directory.current = 'test_projects/example3_flutter_package';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -217,9 +230,23 @@ scripts:
         if (!(await gpm.isFlutterCommandAvailable)) {
           return;
         }
-        Directory.current = 'test_projects/example1';
+        Directory.current = 'test_projects/example1_two_packages';
         await _gpm(['get', '--offline']);
         await _gpm(['test']);
+      });
+
+      test('example #2', () async {
+        Directory.current = 'test_projects/example2_gpm_config';
+        final file = File('dart_package/tested.txt');
+        addTearDown(() {
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        });
+        expect(file.existsSync(), isFalse);
+        await _gpm(['get', '--offline']);
+        await _gpm(['test']); // Will create 'tested.txt'
+        expect(file.existsSync(), isTrue);
       });
 
       test('example4_failing_test', () async {
@@ -238,6 +265,22 @@ scripts:
       });
     });
 
+    group('gpm build:', () {
+      test('example #2', () async {
+        Directory.current = 'test_projects/example2_gpm_config';
+        final file = File('dart_package/built.txt');
+        addTearDown(() {
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        });
+        expect(file.existsSync(), isFalse);
+        await _gpm(['get', '--offline']);
+        await _gpm(['build']); // Will create 'built.txt'
+        expect(file.existsSync(), isTrue);
+      });
+    });
+
     group('gpm run example:', () {
       test('example #2', () async {
         addTearDown(() {
@@ -246,7 +289,7 @@ scripts:
             file.deleteSync();
           }
         });
-        Directory.current = 'test_projects/example2';
+        Directory.current = 'test_projects/example2_gpm_config';
         expect(File('x').existsSync(), isFalse);
         await _gpm(['run', 'example', 'x']);
         expect(File('x').existsSync(), isTrue);

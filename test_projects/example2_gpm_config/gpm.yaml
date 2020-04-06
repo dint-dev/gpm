@@ -1,0 +1,18 @@
+packages:
+  - path: dart_package
+    test:
+      steps:
+        - run: pub run test -h
+        - run: touch tested.txt
+    build:
+      steps:
+        - run: pub run webdev -h
+        - run: touch built.txt
+
+  # IMPORTANT:
+  # 'excluded_package' is not included here
+
+scripts:
+  example:
+    steps:
+      - run: touch $ARGS

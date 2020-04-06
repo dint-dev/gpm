@@ -1,11 +1,7 @@
-name: flutter_package
+name: excluded_package
 
 environment:
   sdk: '>=2.5.0 <3.0.0'
-
-dependencies:
-  flutter:
-    sdk: flutter
 
 dev_dependencies:
   test: ^1.10.0

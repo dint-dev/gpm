@@ -114,8 +114,8 @@ class GpmStep {
     });
   }
 
-  Future<void> execute(
-    List<String> args, {
+  Future<void> execute({
+    List<String> args,
     Map<String, String> environment,
     String workingDirectory,
   }) async {
@@ -172,7 +172,7 @@ class GpmStep {
     if (steps != null) {
       for (var step in steps) {
         await step.execute(
-          args,
+          args: args,
           environment: environment,
           workingDirectory: workingDirectory,
         );

@@ -22,6 +22,8 @@ String _fileName(String path) {
 /// A package node in [GpmConfig].
 class GpmPackage {
   String path;
+  GpmStep test;
+  GpmStep build;
 
   bool _isFlutter;
   bool _isWebDev;
@@ -35,12 +37,16 @@ class GpmPackage {
       final result = GpmPackage();
       for (var entry in yaml.entries) {
         final key = entry.key as String;
+        final value = entry.value;
         switch (key) {
           case 'path':
-            result.path = entry.value as String;
+            result.path = value as String;
             break;
-          case 'flutter':
-            result.path = entry.value as String;
+          case 'test':
+            result.test = GpmStep.fromYaml(value, path: [...path, 'test']);
+            break;
+          case 'build':
+            result.build = GpmStep.fromYaml(value, path: [...path, 'build']);
             break;
           default:
             throw StateError('Unsupported key "$key" in /${path.join("/")}');
@@ -138,6 +144,12 @@ class GpmPackage {
   Map<String, Object> toYaml() {
     final result = <String, Object>{};
     result['path'] = path;
+    if (test != null) {
+      result['test'] = test.toYaml();
+    }
+    if (build != null) {
+      result['build'] = build.toYaml();
+    }
     return result;
   }
 }

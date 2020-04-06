@@ -27,6 +27,11 @@ class _BuildCommand extends Command {
   @override
   Future<void> run() async {
     for (var package in GpmConfig.get().packages) {
+      final step = package.build;
+      if (step != null) {
+        await step.execute(workingDirectory: package.directory.path);
+        continue;
+      }
       if (package.isFlutter) {
         await runCommand(
           'flutter',

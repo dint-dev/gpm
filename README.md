@@ -110,7 +110,7 @@ gpm upgrade
 This is just a shorthand for `pub global activate gpm`.
 
 
-## Choosing packages manually
+## Defining packages manually
 By default, GPM assumes that every directory that contains _pubspec.yaml_ is a package.
 Packages are currently handled in alphabetical order.
 
@@ -118,6 +118,14 @@ You can customize this in `gpm.yaml`:
 ```yaml
 packages:
   - path: some/package
+    # Override default test step(s)
+    test:
+      run: flutter test
+    # Override default build step(s)
+    build:
+      steps:
+        - run: flutter build android
+        - run: flutter build ios
   - path: some/other/package
 ```
 
