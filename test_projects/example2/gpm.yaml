@@ -4,4 +4,4 @@ packages:
 scripts:
   example:
     steps:
-      - run: ['touch', '$ARGS']
+      - run: touch $ARGS

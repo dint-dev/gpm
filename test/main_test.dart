@@ -1,17 +1,111 @@
-@Timeout(Duration(seconds: 60))
+// Copyright 2020 terrier989@gmail.com.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+@Timeout(Duration(minutes: 2))
 library gpm_test;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
+import 'package:gpm/cli.dart' as gpm;
 import 'package:gpm/gpm.dart' as gpm;
+import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-
-Future<void> _gpm(List<String> args) {
-  return gpm.main(args, noExit: true);
-}
+import 'dart:async';
 
 void main() {
+  setUpAll(() async {
+    if (Platform.environment['SILENT'] == 'true') {
+      gpm.commandStdout = null;
+      gpm.commandStderr = null;
+    }
+    // Cache dependencies so we can use "run pub get --offline" later
+    await gpm.runCommand(
+      'pub',
+      ['get'],
+      workingDirectory: 'test_projects/example2/dart_package',
+    );
+  });
+  group('GpmStep:', () {
+    group('evaluateTemplate:', () {
+      test('lots of whitespace', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            r'  a  b  c  ',
+            environment: {},
+          ),
+          ['a', 'b', 'c'],
+        );
+      });
+      test('quotes #1', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            r'arg0 "a b c"',
+            environment: {},
+          ),
+          ['arg0', 'a b c'],
+        );
+      });
+      test('quotes #2', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            r'arg0 "a b c" arg2',
+            environment: {},
+          ),
+          ['arg0', 'a b c', 'arg2'],
+        );
+      });
+      test('environmental variable', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            r'arg0 prefix-$(ABC)-suffix arg2',
+            environment: {
+              'ABC': 'value',
+            },
+          ),
+          ['arg0', 'prefix-value-suffix', 'arg2'],
+        );
+      });
+      test('environmental variable is missing', () {
+        expect(
+          () => gpm.GpmStep.evaluateTemplate(
+            r'$(ABC)',
+            environment: {},
+          ),
+          throwsStateError,
+        );
+      });
+      test('paths in non-Windows systems', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            'arg0 @(a/b/c) arg2',
+            environment: {},
+          ),
+          ['arg0', 'a/b/c', 'arg2'],
+        );
+      });
+      test('paths in Windows systems', () {
+        expect(
+          gpm.GpmStep.evaluateTemplate(
+            'arg0 @(a/b/c) arg2',
+            environment: {},
+            pathSeparator: r'\',
+          ),
+          ['arg0', r'a\b\c', 'arg2'],
+        );
+      });
+    });
+  });
   group('GpmConfig:', () {
     test('example #1', () {
       final config = gpm.GpmConfig.fromYaml(loadYaml('''
@@ -25,7 +119,7 @@ scripts:
     environment:
       k0: v0
       k1: v1
-    run: ["echo", "hello"]
+    run: echo "hello"
   example1:
     platform: windows
     fail: Failure message
@@ -40,7 +134,7 @@ scripts:
         expect(example.platform, isNull);
         expect(example.description, 'some script');
         expect(example.environment, {'k0': 'v0', 'k1': 'v1'});
-        expect(example.run, ['echo', 'hello']);
+        expect(example.run, 'echo "hello"');
         expect(example.fail, isNull);
       }
       {
@@ -54,38 +148,41 @@ scripts:
     });
   });
   group('main(...):', () {
-    final oldWorkingDirectory = Directory.current;
     setUp(() {
-      Directory.current = oldWorkingDirectory;
       _deleteTemporyFiles();
     });
+
+    final oldWorkingDirectory = Directory.current;
     tearDown(() {
       Directory.current = oldWorkingDirectory;
       _deleteTemporyFiles();
     });
 
-    test('gpm list', () {
-      final process = Process.runSync('pub', ['run', 'gpm', 'list']);
+    test('gpm info', () {
+      final process = Process.runSync('pub', ['run', 'gpm', 'info']);
       final out = process.stdout as String;
       final lines = out
           .trim()
           .split('\n')
           .where((e) => !e.startsWith('Observatory server failed'))
           .toList();
-      expect(lines, hasLength(5));
+      expect(lines, hasLength(6));
       expect(
         lines[0],
         '.'.padRight(60) + '(Dart SDK)',
       );
       expect(
         lines[1],
-        'test/example1/dart_package'.padRight(60) + '(Dart SDK)',
+        'test_projects/example1/dart_package'.padRight(60) + '(Dart SDK)',
       );
     });
 
     group('gpm get:', () {
       test('example #1', () async {
-        Directory.current = 'test/example1';
+        if (!(await gpm.isFlutterCommandAvailable)) {
+          return;
+        }
+        Directory.current = 'test_projects/example1';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -94,7 +191,7 @@ scripts:
       });
 
       test('example #2', () async {
-        Directory.current = 'test/example2';
+        Directory.current = 'test_projects/example2';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -103,7 +200,10 @@ scripts:
       });
 
       test('example #3', () async {
-        Directory.current = 'test/example3';
+        if (!(await gpm.isFlutterCommandAvailable)) {
+          return;
+        }
+        Directory.current = 'test_projects/example3';
         expect(_exists('dart_package/.packages'), isFalse);
         expect(_exists('flutter_package/.packages'), isFalse);
         await _gpm(['get', '--offline']);
@@ -114,9 +214,27 @@ scripts:
 
     group('gpm test:', () {
       test('example #1', () async {
-        Directory.current = 'test/example1';
+        if (!(await gpm.isFlutterCommandAvailable)) {
+          return;
+        }
+        Directory.current = 'test_projects/example1';
         await _gpm(['get', '--offline']);
         await _gpm(['test']);
+      });
+
+      test('example4_failing_test', () async {
+        Directory.current = 'test_projects/example4_failing_test';
+        await _gpm(['get', '--offline']);
+
+        try {
+          await _gpm(['test']);
+          fail('Should have thrown');
+        } on gpm.CommandFailedException catch (e) {
+          expect(e.stdout, contains('Test failed'));
+          expect(e.stdout, contains('Some tests failed'));
+          expect(e.stderr, '');
+          expect(e.exitCode, isNot(0));
+        }
       });
     });
 
@@ -128,7 +246,7 @@ scripts:
             file.deleteSync();
           }
         });
-        Directory.current = 'test/example2';
+        Directory.current = 'test_projects/example2';
         expect(File('x').existsSync(), isFalse);
         await _gpm(['run', 'example', 'x']);
         expect(File('x').existsSync(), isTrue);
@@ -137,12 +255,8 @@ scripts:
   });
 }
 
-bool _exists(String path) {
-  return File.fromUri(Directory.current.uri.resolve(path)).existsSync();
-}
-
 void _deleteTemporyFiles() {
-  for (var entity in Directory('test').listSync(recursive: true)) {
+  for (var entity in Directory('test_projects').listSync(recursive: true)) {
     final packages = entity.path.split(Platform.pathSeparator);
     final name = packages.last;
     if (name == '.packages' || name == 'pubspec.lock' || name == '.dart_tool') {
@@ -151,4 +265,12 @@ void _deleteTemporyFiles() {
       }
     }
   }
+}
+
+bool _exists(String path) {
+  return File.fromUri(Directory.current.uri.resolve(path)).existsSync();
+}
+
+Future<void> _gpm(List<String> args) async {
+  await gpm.main(args, noExit: true);
 }

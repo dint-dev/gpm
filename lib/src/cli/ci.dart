@@ -12,17 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// A command-line tool for working with monorepos.
-library gpm;
+part of gpm.cli;
 
-import 'dart:convert';
-import 'dart:io';
+class _CICommand extends Command {
+  _CICommand() {
+    addSubcommand(_CIInitCommand());
+  }
 
-import 'package:boolean_selector/boolean_selector.dart';
-import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+  @override
+  String get description => 'Manage CI configurations.';
 
-part 'src/gpm/gpm_config.dart';
-part 'src/gpm/gpm_package.dart';
-part 'src/gpm/gpm_step.dart';
-part 'src/gpm/run_command.dart';
+  @override
+  String get name => 'ci';
+}
+
+class _CIInitCommand extends Command {
+  _CIInitCommand() {
+    addSubcommand(_CIInitAzureCommand());
+    addSubcommand(_CIInitGithubCommand());
+    addSubcommand(_CIInitGitlabCommand());
+    addSubcommand(_CIInitTravisCommand());
+  }
+
+  @override
+  String get description => 'Initialize CI configuration.';
+
+  @override
+  String get name => 'init';
+}

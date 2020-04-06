@@ -1,5 +1,20 @@
+// Copyright 2020 terrier989@gmail.com.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 part of gpm;
 
+/// A _gpm.yaml_ config file.
 class GpmConfig {
   final List<GpmPackage> packages = <GpmPackage>[];
   final Map<String, GpmStep> scripts = <String, GpmStep>{};
@@ -51,11 +66,27 @@ class GpmConfig {
     return yaml;
   }
 
+  static File _getGpmFile(Directory root) {
+    {
+      final file = File.fromUri(root.uri.resolve('.gpm.yaml'));
+      if (file.existsSync()) {
+        return file;
+      }
+    }
+    {
+      final file = File.fromUri(root.uri.resolve('gpm.yaml'));
+      if (file.existsSync()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
   static Iterable<GpmPackage> findParts({Directory root}) sync* {
     root ??= Directory.current;
     if (root is Directory) {
-      final gpmFile = File.fromUri(root.uri.resolve('gpm.yaml'));
-      if (gpmFile.existsSync()) {
+      final gpmFile = _getGpmFile(root);
+      if (gpmFile != null) {
         final yaml = loadYaml(gpmFile.readAsStringSync());
         final packages = GpmConfig.fromYaml(yaml).packages;
         for (var part in packages) {

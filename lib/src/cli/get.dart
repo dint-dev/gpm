@@ -12,17 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// A command-line tool for working with monorepos.
-library gpm;
+part of gpm.cli;
 
-import 'dart:convert';
-import 'dart:io';
+class _GetCommand extends Command {
+  _GetCommand() {
+    argParser.addFlag('offline');
+  }
 
-import 'package:boolean_selector/boolean_selector.dart';
-import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+  @override
+  String get description => 'Get dependencies for each package.';
 
-part 'src/gpm/gpm_config.dart';
-part 'src/gpm/gpm_package.dart';
-part 'src/gpm/gpm_step.dart';
-part 'src/gpm/run_command.dart';
+  @override
+  String get name => 'get';
+
+  @override
+  bool get takesArguments => false;
+
+  @override
+  Future<void> run() async {
+    final args = ['get'];
+    final offline = argResults['offline'];
+    if (offline) {
+      args.add('--offline');
+    }
+    args.addAll(argResults.rest);
+    for (var package in GpmConfig.get().packages) {
+      await package.runPub(args);
+    }
+  }
+}

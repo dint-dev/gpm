@@ -13,16 +13,24 @@
 // limitations under the License.
 
 /// A command-line tool for working with monorepos.
-library gpm;
+library gpm.cli;
 
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:boolean_selector/boolean_selector.dart';
-import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 
-part 'src/gpm/gpm_config.dart';
-part 'src/gpm/gpm_package.dart';
-part 'src/gpm/gpm_step.dart';
-part 'src/gpm/run_command.dart';
+import 'gpm.dart';
+
+part 'src/cli/build.dart';
+part 'src/cli/ci.dart';
+part 'src/cli/ci_init_azure.dart';
+part 'src/cli/ci_init_github.dart';
+part 'src/cli/ci_init_gitlab.dart';
+part 'src/cli/ci_init_travis.dart';
+part 'src/cli/get.dart';
+part 'src/cli/info.dart';
+part 'src/cli/main.dart';
+part 'src/cli/run.dart';
+part 'src/cli/test.dart';
+part 'src/cli/version.dart';

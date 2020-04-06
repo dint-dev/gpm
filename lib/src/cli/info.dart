@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// A command-line tool for working with monorepos.
-library gpm;
+part of gpm.cli;
 
-import 'dart:convert';
-import 'dart:io';
+class _InfoCommand extends Command {
+  @override
+  String get description => 'Show all packages in the directory tree.';
 
-import 'package:boolean_selector/boolean_selector.dart';
-import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+  @override
+  String get name => 'info';
 
-part 'src/gpm/gpm_config.dart';
-part 'src/gpm/gpm_package.dart';
-part 'src/gpm/gpm_step.dart';
-part 'src/gpm/run_command.dart';
+  @override
+  bool get takesArguments => false;
+
+  @override
+  Future<void> run() async {
+    for (var package in GpmConfig.get().packages) {
+      final line = _toRelativePath(package.path).padRight(60);
+      print('$line(${package.isFlutter ? "Flutter SDK" : "Dart SDK"})');
+    }
+  }
+}
