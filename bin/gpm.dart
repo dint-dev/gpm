@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:args/command_runner.dart';
 import 'package:gpm/cli.dart' as gpm;
 
 Future<void> main(List<String> args) async {

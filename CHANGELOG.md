@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Improves documentation.
+
 ## 0.2.1
 
 * Adds support for overriding test/build steps.

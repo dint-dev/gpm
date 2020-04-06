@@ -3,22 +3,22 @@
 
 # Overview
 
-GPM ("General Package Manager") is a command-line tool for working with Dart/Flutter repositories.
-
-By default, GPM assumes that every package found in the directory tree is part of the project. You
-can optionally write `.gpm.yaml` configuration file.
-
-## Alternatives
-  * Writing shell scripts (or Dart scripts).
-    * GPM is faster to set up.
-  * Setting up a CI tool.
-    * GPM is a lightweight tool that doesn't replace a CI server.
-  * [pub.dev/packages/mono_repo](https://pub.dev/packages/mono_repo)
-    * _mono_repo_ is focused on running Travis CI locally.
+GPM ("General Package Manager") is a programming tool designed for monorepos (multi-package
+repositories). GPM automatically discovers packages and infers how to test/build them.
+You can optionally write `.gpm.yaml` configuration files.
 
 ## Links
   * [Pub package](https://pub.dev/packages/gpm)
   * [Issue tracker](https://github.com/dint-dev/gpm/issues)
+
+## Alternatives
+  * Custom test/build scripts (Bash, Dart, etc.).
+    * GPM saves time and is less error-prone.
+  * CI tools
+    * GPM is just a simple command-line tool that developers can use in their local development
+      machine. It doesn't replace CI tools. GPM can be used to generate configurations for CI tools.
+  * [mono_repo](https://pub.dev/packages/mono_repo)
+    * _mono_repo_ appears to be focused on running Travis CI tests locally.
 
 # Installing
 Then run:
@@ -110,7 +110,13 @@ gpm upgrade
 This is just a shorthand for `pub global activate gpm`.
 
 
-## Defining packages manually
+# Optional configuration file
+## Filename
+The following filenames are supported:
+  * _.gpm.yaml_
+  * _gpm.yaml_
+
+## Defining packages
 By default, GPM assumes that every directory that contains _pubspec.yaml_ is a package.
 Packages are currently handled in alphabetical order.
 
@@ -124,12 +130,14 @@ packages:
     # Override default build step(s)
     build:
       steps:
-        - run: flutter build android
+        - run: flutter build apk
         - run: flutter build ios
+        - run: flutter build web
+
   - path: some/other/package
 ```
 
-## Running scripts
+## Defining scripts
 In `gpm.yaml`:
 ```yaml
 scripts:
@@ -158,7 +166,7 @@ gpm run protos
 ```
 
 Syntax rules for _run_ are:
-  * `cmd "a b c" arg1 arg2` (quoted arguments)
-  * `cmd "\@\(\)" arg1 arg2` (escape character "\" works inside quoted arguments)
-  * `cmd $(ENV_VAR) arg1 arg2` (environmental variables)
-  * `cmd @(a/b/c) arg1 arg2` (slash replacement for supporting Windows)
+  * `"a b c"` (a quoted argument)
+  * `"\@\(\)"` (escape character "\\" works inside a quoted argument)
+  * `$(ENV_VAR)` (an environmental variable)
+  * `@(a/b/c)` (replaces "/" with "\" in Windows)

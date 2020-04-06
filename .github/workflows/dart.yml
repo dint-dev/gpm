@@ -19,4 +19,4 @@ jobs:
       - name: Run tests
         env:
             SILENT: "true"
-        run: pub run test --platform=vm
+        run: pub run test

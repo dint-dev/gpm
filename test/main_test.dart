@@ -15,13 +15,13 @@
 @Timeout(Duration(minutes: 2))
 library gpm_test;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:gpm/cli.dart' as gpm;
 import 'package:gpm/gpm.dart' as gpm;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-import 'dart:async';
 
 void main() {
   group('GpmStep:', () {
