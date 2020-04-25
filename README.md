@@ -51,6 +51,13 @@ The above command will run:
   * `flutter pub get` (for each Flutter SDK package)
   * `pub get` (for each Dart SDK package)
 
+## Link packages
+```
+gpm get --link
+```
+
+The above command will do `gpm get` and link all local packages together.
+
 ## Test
 ```
 gpm test

@@ -28,6 +28,7 @@ class GpmPackage {
   bool _isFlutter;
   bool _isWebDev;
   String _pubspec;
+  String _name;
   String _pubspecLock;
 
   GpmPackage();
@@ -88,6 +89,11 @@ class GpmPackage {
     _pubspec ??=
         File.fromUri(directory.uri.resolve('pubspec.yaml')).readAsStringSync();
     return _pubspec;
+  }
+
+  String get name {
+    _name ??= loadYaml(pubspec)['name'];
+    return _name;
   }
 
   String get pubspecLock {
@@ -151,5 +157,34 @@ class GpmPackage {
       result['build'] = build.toYaml();
     }
     return result;
+  }
+
+  /// Links local packages.
+  Future<void> link(List<GpmPackage> packages) async {
+    final packageConfig = await findPackageConfig(directory);
+
+    final linkedPackages = packageConfig.packages.map((package) {
+      final otherPackage = packages.firstWhere(
+        (otherPackage) => otherPackage.name == package.name,
+        orElse: () => null,
+      );
+
+      if (otherPackage == null) return package;
+
+      return Package(
+        package.name,
+        otherPackage.directory.uri,
+        packageUriRoot: package.packageUriRoot,
+        extraData: package.extraData,
+        languageVersion: package.languageVersion,
+      );
+    });
+
+    final linkedPackageConfig = PackageConfig(
+      linkedPackages,
+      extraData: packageConfig.extraData,
+    );
+
+    await savePackageConfig(linkedPackageConfig, directory);
   }
 }

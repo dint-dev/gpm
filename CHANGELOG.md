@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Support package linking via `gpm get --link`.
+
 ## 0.2.2
 
 * Improves documentation.

@@ -1,5 +1,5 @@
 name: gpm
-version: 0.2.2
+version: 0.2.3
 description:
   An easy command-line tool for testing and building monorepos (multi-package repositories).
 homepage: https://github.com/dint-dev/gpm
@@ -13,6 +13,7 @@ dependencies:
   args: ^1.4.0
   boolean_selector: ^2.0.0
   meta: ^1.1.0
+  package_config: ^1.9.3
   yaml: ^2.0.0
 
 dev_dependencies:

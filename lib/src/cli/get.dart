@@ -17,6 +17,7 @@ part of gpm.cli;
 class _GetCommand extends Command {
   _GetCommand() {
     argParser.addFlag('offline');
+    argParser.addFlag('link');
   }
 
   @override
@@ -35,9 +36,15 @@ class _GetCommand extends Command {
     if (offline) {
       args.add('--offline');
     }
+    final link = argResults['link'];
     args.addAll(argResults.rest);
-    for (var package in GpmConfig.get().packages) {
+    final packages = GpmConfig.get().packages;
+    for (var package in packages) {
       await package.runPub(args);
+
+      if (link) {
+        await package.link(packages);
+      }
     }
   }
 }
