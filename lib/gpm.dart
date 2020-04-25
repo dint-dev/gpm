@@ -20,6 +20,7 @@ import 'dart:io';
 
 import 'package:boolean_selector/boolean_selector.dart';
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
 part 'src/gpm/gpm_config.dart';
